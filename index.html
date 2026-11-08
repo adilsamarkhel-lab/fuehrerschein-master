@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Führerschein Master</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;color:#172b40}
+header{background:#123b5d;color:white;padding:22px;text-align:center}
+main{padding:15px;max-width:650px;margin:auto}
+.card{background:white;padding:18px;border-radius:14px;margin:14px 0}
+button{padding:12px;border:0;border-radius:9px;background:#123b5d;color:white;margin:5px;cursor:pointer}
+.answer{display:block;width:100%;text-align:left;background:#edf2f7;color:#172b40}
+.urdu{direction:rtl;text-align:right;line-height:2;background:#f1f5f9;padding:12px;border-radius:9px}
+input,textarea{width:100%;padding:10px;margin:7px 0;box-sizing:border-box}
+.word{border-bottom:2px dotted #1683bd;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+<h2>🚘 Führerschein Master</h2>
+Deutsch lernen · Urdu verstehen · Klasse B
+</header>
+<main>
+<div class="card">
+<h3>Prüfungsfragen / سوالات</h3>
+<div id="number"></div>
+<h3 id="question"></h3>
+<div class="urdu" id="translation"></div>
+<div id="answers"></div>
+<p id="feedback"></p>
+<button onclick="next()">Nächste Frage →</button>
+<p id="meaning"></p>
+</div>
+<div class="card">
+<h3>Eigene Frage hinzufügen</h3>
+<input id="q" placeholder="Deutsche Frage">
+<textarea id="u" placeholder="اردو ترجمہ"></textarea>
+<input id="a" placeholder="Antwort 1">
+<input id="b" placeholder="Antwort 2">
+<input id="c" placeholder="Antwort 3">
+<select id="right">
+<option value="0">Antwort 1 richtig</option>
+<option value="1">Antwort 2 richtig</option>
+<option value="2">Antwort 3 richtig</option>
+</select>
+<button onclick="save()">Frage speichern</button>
+</div>
+<div class="card">
+<h3>Wörterbuch / لغت</h3>
+<div id="dictionary"></div>
+</div>
+</main>
+<script>
+const words={
+"Vorfahrt":"راستے کا حقِ تقدم",
+"Ampel":"ٹریفک لائٹ",
+"anhalten":"رکنا",
+"Verkehrszeichen":"ٹریفک کے اشارے",
+"Müdigkeit":"تھکاوٹ",
+"Pause":"وقفہ",
+"beachten":"خیال رکھنا"
+};
+const base=[
+{q:"Was müssen Sie bei diesem Verkehrszeichen beachten?",u:"آپ کو اس ٹریفک سائن کے بارے میں کیا خیال رکھنا چاہیے؟",a:["Sie müssen Vorfahrt gewähren.","Sie haben immer Vorfahrt.","Sie dürfen nicht weiterfahren."],r:0},
+{q:"Was bedeutet eine rote Ampel?",u:"سرخ ٹریفک لائٹ کا کیا مطلب ہے؟",a:["Weiterfahren.","Anhalten.","Schneller fahren."],r:1},
+{q:"Was tun Sie bei Müdigkeit während der Fahrt?",u:"ڈرائیونگ کے دوران تھکاوٹ ہو تو کیا کریں؟",a:["Weiterfahren.","Schneller fahren.","Anhalten und Pause machen."],r:2}
+];
+let extra=JSON.parse(localStorage.getItem("extraQuestions")||"[]");
+let questions=[...base,...extra],i=0,done=false;
+function render(){
+questions=[...base,...extra];
+let q=questions[i];
+document.getElementById("number").textContent="Frage "+(i+1)+" / "+questions.length;
+document.getElementById("question").textContent=q.q;
+document.getElementById("translation").textContent=q.u;
+document.getElementById("feedback").textContent="";
+document.getElementById("meaning").textContent="";
+done=false;
+let box=document.getElementById("answers");box.innerHTML="";
+q.a.forEach((a,n)=>{
+let b=document.createElement("button");b.className="answer";
+b.textContent=(n+1)+". "+a;
+b.onclick=()=>check(n,b);box.appendChild(b);
+});
+}
+function check(n,b){
+if(done)return;done=true;
+let q=questions[i];
+document.querySelectorAll(".answer").forEach((x,j)=>{
+x.disabled=true;
+if(j===q.r)x.style.background="#bde8ca";
+});
+document.getElementById("feedback").textContent=n===q.r?"Richtig! ✓":"Leider falsch. Grün ist richtig markiert.";
+}
+function next(){i=(i+1)%questions.length;render();}
+function save(){
+let q=document.getElementById("q").value.trim();
+let u=document.getElementById("u").value.trim();
+let a=["a","b","c"].map(x=>document.getElementById(x).value.trim()).filter(Boolean);
+let r=Number(document.getElementById("right").value);
+if(!q||!u||a.length<2||r>=a.length){alert("Bitte alle notwendigen Felder ausfüllen.");return;}
+extra.push({q,u,a,r});localStorage.setItem("extraQuestions",JSON.stringify(extra));
+alert("Frage gespeichert!");render();
+}
+document.getElementById("dictionary").innerHTML=Object.entries(words).map(([a,b])=>"<p><b>"+a+"</b> — "+b+"</p>").join("");
+document.addEventListener("click",e=>{
+let t=e.target.textContent;
+if(words[t])document.getElementById("meaning").textContent=t+" = "+words[t];
+});
+render();
+</script>
+</body>
+</html>
